@@ -24,43 +24,39 @@ const register = asyncHandler(async (req, res) => {
     });
   }
 
-  const respone = await User.create(req.body);
-
-  return res.status(200).json({ success: respone ? true : false, respone });
+  const user = await User.findOne({ email });
+  if (user) {
+    throw new Error("User has existed");
+  } else {
+    const newUser = await User.create(req.body);
+    return res.status(200).json({
+      success: newUser ? true : false,
+      mes: newUser ? "Register is successfuly" : "Something went wrong",
+    });
+  }
 });
 
 //login
 const login = asyncHandler(async (req, res) => {
-  const { email, password, firstname, lastname, mobile } = req.body;
+  const { email, password } = req.body;
 
-  if (!email || !password || !firstname || !lastname || !mobile) {
+  if (!email || !password) {
     return res.status(400).json({
       success: false,
       mes: {
         warning: "Missing Input",
         email: checkNullInfor(email),
         password: checkNullInfor(password),
-        firstname: checkNullInfor(firstname),
-        lastname: checkNullInfor(lastname),
-        mobile: checkNullInfor(mobile),
       },
     });
   }
   const findUser = await User.findOne({ email: email });
-  if (findUser) {
-    const comparePassword = bcrypt.compareSync(password, findUser.password);
-    if (comparePassword) {
-      return res.status(200).json({ success: true, mes: "login successfully" });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, mes: "password is not exactly" });
-    }
+  if (findUser && (await findUser.isCorrectPassword(password))) {
+    const { password, role, ...userData } = findUser.toObject();
+    return res.status(200).json({ success: true, userData });
   } else {
-    return res.status(400).json({ success: false, mes: "User is not exist" });
+    throw new Error("Invalid credentials!");
   }
-
-  // const respone = await User.create(req.body);
 });
 
 module.exports = {
