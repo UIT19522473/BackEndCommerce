@@ -1,6 +1,7 @@
 const express = require("express");
 const dbConnect = require("./config/dbconnect");
 const initRoutes = require("./routes");
+const cookieParser = require("cookie-parser");
 
 const dotenv = require("dotenv");
 
@@ -10,6 +11,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 //connect database
 dbConnect();
