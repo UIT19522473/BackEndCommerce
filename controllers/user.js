@@ -1,5 +1,8 @@
 const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
+const sendMail = require("../utilities/sendMail");
+const crypto = require("crypto");
+
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -132,10 +135,66 @@ const logout = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, mes: "LogOut is done" });
 });
 
+//send email forgot password
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.query;
+  if (!email) throw new Error("Missing email");
+  const user = await User.findOne({ email: email });
+  if (!user) throw new Error("User not found");
+  const resetToken = user.createPasswordChangedToken();
+  await user.save();
+
+  //send mail
+  const html = `<p>You have requested a password reset</p>
+  <p>If not you, ignore this email.</p>
+  <p>To reset your password, please visit the following link:</p>
+  <a href="${process.env.URL_SERVER}/api/user/reset-password/${resetToken}">Reset Password</a>`;
+
+  const data = {
+    email: email,
+    html: html,
+  };
+
+  const rs = await sendMail(data);
+  return res.status(200).json({ success: rs ? true : false, rs });
+});
+
+//route resetPassword
+const resetPassword = asyncHandler(async (req, res) => {
+  const { password, token } = req.body;
+
+  if (!password || !token) throw new Error("Missing Inputs");
+
+  const passwordResetToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken,
+    passwordResetExpries: { $gt: Date.now() },
+  });
+
+  if (!user) throw new Error("Invalid reset token");
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordChangeAt = Date.now();
+  user.passwordResetExpries = undefined;
+  await user.save();
+
+  return res.status(200).json({
+    success: user ? true : false,
+    mes: user ? "Updated password" : "Something went wrong",
+  });
+});
+
 module.exports = {
   register,
   login,
   getCurrent,
   refreshAccessToken,
   logout,
+  forgotPassword,
+  resetPassword,
 };
