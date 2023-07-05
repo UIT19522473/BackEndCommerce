@@ -75,6 +75,16 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
+userSchema.pre("findOneAndUpdate", async function (next) {
+  console.log("update herre");
+  if (!this._update.password) {
+    next();
+  }
+  const saltRounds = 10;
+  const salt = await bcrypt.genSalt(saltRounds);
+  this._update.password = await bcrypt.hash(this._update.password, salt);
+});
+
 //compare password
 userSchema.methods = {
   isCorrectPassword: async function (password) {
