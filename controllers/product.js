@@ -1,3 +1,4 @@
+const { response } = require("express");
 const Product = require("../models/product");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
@@ -27,13 +28,56 @@ const getProduct = asyncHandler(async (req, res) => {
 });
 
 //get all product (filtering, sorting, pagination)
-const getProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find();
 
-  return res.status(200).json({
-    success: products ? true : false,
-    productsData: products ? products : "Cannot get products",
-  });
+const getProducts = asyncHandler(async (req, res) => {
+  const queries = { ...req.query };
+  // split special fields form query
+  const excludeFields = ["limit", "sort", "page", "fields"];
+  excludeFields.forEach((el) => delete queries[el]);
+
+  //format operators true syntax of mongoose
+  let queryString = JSON.stringify(queries);
+
+  // const products = await Product.find(queries);
+  try {
+    queryString = queryString.replace(
+      /\b(gte|gt|lt|lte)\b/g,
+      (matchedEl) => `$${matchedEl}`
+    );
+  } catch (error) {
+    throw new Error(error);
+  }
+
+  const formatedQueries = JSON.parse(queryString);
+  // console.log(formatedQueries);
+
+  //filtering
+  if (queries?.title) {
+    formatedQueries.title = { $regex: queries.title, $options: "i" };
+  }
+  let queryCommand = Product.find(formatedQueries);
+
+  //if query have sort field
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    queryCommand = queryCommand.sort(sortBy);
+  }
+
+  //querryCommand excute
+  queryCommand
+    .then(async (response) => {
+      // if (err) throw new Error(err.message);
+      const counts = await Product.find(formatedQueries).countDocuments();
+
+      return res.status(200).json({
+        success: response ? true : false,
+        products: response ? response : "Cannot get products",
+        counts,
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({ success: false, mes: err.message });
+    });
 });
 
 //update Product
