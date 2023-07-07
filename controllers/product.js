@@ -29,6 +29,36 @@ const getProduct = asyncHandler(async (req, res) => {
 
 //get all product (filtering, sorting, pagination)
 
+//test
+const testFunc = asyncHandler(async (req, res) => {
+  const queries = { ...req.query };
+  // split special fields form query
+  console.log(queries);
+  const excludeFields = ["limit", "sort", "page", "fields"];
+  excludeFields.forEach((el) => delete queries[el]);
+  let queryString = JSON.stringify(queries);
+
+  try {
+    queryString = queryString.replace(
+      /\b(gte|gt|lt|lte)\b/g,
+      (matchedEl) => `$${matchedEl}`
+    );
+  } catch (error) {
+    throw new Error(error);
+  }
+
+  const formatedQueries = JSON.parse(queryString);
+
+  //filtering
+  if (queries?.title) {
+    formatedQueries.title = { $regex: queries.title, $options: "i" };
+  }
+  console.log(formatedQueries);
+  res.status(200).json({ mes: queries });
+});
+
+//test ends here
+
 const getProducts = asyncHandler(async (req, res) => {
   const queries = { ...req.query };
   // split special fields form query
@@ -49,7 +79,6 @@ const getProducts = asyncHandler(async (req, res) => {
   }
 
   const formatedQueries = JSON.parse(queryString);
-  // console.log(formatedQueries);
 
   //filtering
   if (queries?.title) {
@@ -57,11 +86,26 @@ const getProducts = asyncHandler(async (req, res) => {
   }
   let queryCommand = Product.find(formatedQueries);
 
-  //if query have sort field
+  //sorting
   if (req.query.sort) {
     const sortBy = req.query.sort.split(",").join(" ");
     queryCommand = queryCommand.sort(sortBy);
   }
+
+  //fields limiting
+  if (req.query.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+    queryCommand = queryCommand.select(fields);
+  }
+
+  //pagination
+  //limit: object number has in one page
+  //skip: number want to skip
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || process.env.LIMIT_PRODUCT;
+  const skip = (page - 1) * limit;
+
+  queryCommand.skip(skip).limit(limit);
 
   //querryCommand excute
   queryCommand
@@ -71,8 +115,8 @@ const getProducts = asyncHandler(async (req, res) => {
 
       return res.status(200).json({
         success: response ? true : false,
-        products: response ? response : "Cannot get products",
         counts,
+        products: response ? response : "Cannot get products",
       });
     })
     .catch((err) => {
@@ -106,10 +150,43 @@ const deleteProduct = asyncHandler(async (req, res) => {
   });
 });
 
+//rating product by User
+const ratings = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { star, comment, pid } = req.body;
+
+  if (!star || !pid) throw new Error("Missing Input");
+
+  const ratingProduct = await Product.findById(pid);
+  const alreadyRating = ratingProduct?.ratings?.find(
+    (el) => el.postedBy.toString() === _id.toString()
+  );
+
+  if (alreadyRating) {
+    await Product.findOneAndUpdate(
+      { _id: pid, "ratings.postedBy": _id },
+      { $set: { "ratings.$.star": star, "ratings.$.comment": comment } },
+      { new: true }
+    );
+  } else {
+    await Product.findByIdAndUpdate(
+      pid,
+      {
+        $push: { ratings: { star, comment, postedBy: _id } },
+      },
+      { new: true }
+    );
+  }
+
+  return res.status(200).json({ status: true });
+});
+
 module.exports = {
   createProduct,
   getProduct,
   getProducts,
   updateProduct,
   deleteProduct,
+  ratings,
+  testFunc,
 };
