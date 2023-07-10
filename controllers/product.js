@@ -1,4 +1,3 @@
-const { response } = require("express");
 const Product = require("../models/product");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
@@ -177,6 +176,19 @@ const ratings = asyncHandler(async (req, res) => {
       { new: true }
     );
   }
+
+  //update totalratings
+  const updatedProduct = await Product.findById(pid);
+  const ratingCount = updatedProduct.ratings.length;
+  const sumRatings = updatedProduct.ratings.reduce(
+    (sum, el) => sum + el.star,
+    0
+  );
+
+  console.log(sumRatings);
+  updatedProduct.totalRatings =
+    Math.round((sumRatings * 10) / ratingCount) / 10;
+  await updatedProduct.save();
 
   return res.status(200).json({ status: true });
 });
