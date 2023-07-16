@@ -2,6 +2,7 @@ const express = require("express");
 const dbConnect = require("./config/dbconnect");
 const initRoutes = require("./routes");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
 const dotenv = require("dotenv");
 
@@ -12,6 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors());
 
 //connect database
 dbConnect();

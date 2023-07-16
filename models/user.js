@@ -18,11 +18,11 @@ var userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    mobile: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+    // mobile: {
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    // },
     password: {
       type: String,
       required: true,
@@ -76,7 +76,7 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.pre("findOneAndUpdate", async function (next) {
-  console.log("update herre");
+  // console.log("update herre");
   if (!this._update.password) {
     next();
   }

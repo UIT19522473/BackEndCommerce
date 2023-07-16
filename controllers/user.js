@@ -15,9 +15,9 @@ const checkNullInfor = (data) => {
 
 //register
 const register = asyncHandler(async (req, res) => {
-  const { email, password, firstname, lastname, mobile } = req.body;
+  const { email, password, firstname, lastname } = req.body;
 
-  if (!email || !password || !firstname || !lastname || !mobile) {
+  if (!email || !password || !firstname || !lastname) {
     return res.status(400).json({
       success: false,
       mes: {
@@ -26,7 +26,6 @@ const register = asyncHandler(async (req, res) => {
         password: checkNullInfor(password),
         firstname: checkNullInfor(firstname),
         lastname: checkNullInfor(lastname),
-        mobile: checkNullInfor(mobile),
       },
     });
   }
@@ -58,6 +57,17 @@ const login = asyncHandler(async (req, res) => {
     });
   }
   const findUser = await User.findOne({ email: email });
+
+  if (!findUser)
+    return res
+      .status(200)
+      .json({ success: false, mes: "Your account is not registered" });
+
+  if (!(await findUser.isCorrectPassword(password)))
+    return res
+      .status(200)
+      .json({ success: false, mes: "Password is incorrect" });
+
   if (findUser && (await findUser.isCorrectPassword(password))) {
     //split password and role from findUser
     const { password, role, refreshToken, ...userData } = findUser.toObject();
