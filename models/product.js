@@ -3,6 +3,7 @@ const mongoose = require("mongoose"); // Erase if already required
 // Declare the Schema of the Mongo model
 var productSchema = new mongoose.Schema(
   {
+    tags: { type: Array },
     title: {
       type: String,
       required: true,
@@ -18,18 +19,12 @@ var productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    brand: {
-      type: String,
-      required: true,
-    },
+
     price: {
       type: Number,
       required: true,
     },
-    category: {
-      type: mongoose.Types.ObjectId,
-      ref: "Category",
-    },
+
     quantity: {
       type: Number,
       default: 0,
@@ -43,8 +38,20 @@ var productSchema = new mongoose.Schema(
       type: Array,
     },
     color: {
-      type: String,
-      enum: ["Black", "Grown", "Red"],
+      type: Array,
+      // enum: ["Black", "Grown", "Red"],
+    },
+    coupon: {
+      type: mongoose.Types.ObjectId,
+      ref: "Coupon",
+    },
+    category: {
+      type: mongoose.Types.ObjectId,
+      ref: "ProductCategory",
+    },
+    brand: {
+      type: mongoose.Types.ObjectId,
+      ref: "Brand",
     },
     ratings: [
       {

@@ -165,7 +165,9 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
 const refreshAccessToken = asyncHandler(async (req, res) => {
   //get token from cookie
   const cookie = req.cookies;
-  //check token yes or no
+
+  // console.log("refreshToken", cookie);
+
   if (!cookie && !cookie.refreshToken) {
     throw new Error("No refreshToken in cookies");
   }
@@ -198,7 +200,7 @@ const logout = asyncHandler(async (req, res) => {
     { new: true }
   );
   //delete refresh token in browser cookie
-  res.clearCookie("refreshToken", { httpOnly: true, secure: true });
+  res.clearCookie("refreshToken", { httpOnly: false, secure: true });
 
   return res.status(200).json({ success: true, mes: "LogOut is done" });
 });

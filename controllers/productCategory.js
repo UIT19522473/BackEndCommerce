@@ -16,11 +16,43 @@ const createProductCategory = asyncHandler(async (req, res) => {
 
 //get all categories
 const getCategories = asyncHandler(async (req, res) => {
-  const response = await ProductCategory.find().select("title", "_id");
-  return res.status(200).json({
-    success: response ? true : false,
-    getCategories: response ? response : "cannot get all categories",
-  });
+  // const response = await ProductCategory.find();
+  // return res.status(200).json({
+  //   success: response ? true : false,
+  //   getCategories: response ? response : "cannot get all categories",
+  // });
+
+  await ProductCategory.aggregate([
+    {
+      $lookup: {
+        from: "products",
+        localField: "_id",
+        foreignField: "category",
+        as: "products",
+      },
+    },
+    {
+      $project: {
+        title: 1,
+        image: 1,
+        numberOfProducts: { $size: "$products" },
+      },
+    },
+  ])
+    .then((result) => {
+      // console.log(result);
+      return res.status(200).json({
+        success: result ? true : false,
+        getCategories: result ? result : "cannot get all categories",
+      });
+    })
+    .catch((error) => {
+      // console.error(error);
+      return res.status(500).json({
+        success: false,
+        getCategories: "cannot get all categories",
+      });
+    });
 });
 
 //update
