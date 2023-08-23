@@ -141,8 +141,12 @@ const getProducts = asyncHandler(async (req, res) => {
     dynamicQuery.title = { $regex: title, $options: "i" };
   }
 
+  // console.log(dynamicQuery);
+
   try {
-    const response = await product.find(dynamicQuery);
+    const response = await product
+      .find(dynamicQuery)
+      .populate(["coupon", "category", "brand"]);
     res.status(200).json({
       success: response ? true : false,
       counts: response ? response?.length : 0,
