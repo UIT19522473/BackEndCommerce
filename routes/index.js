@@ -7,6 +7,7 @@ const couponRouter = require("./coupon");
 
 const testRouter = require("./test");
 const postImgRouter = require("./postImg");
+const cartRouter = require("./cart");
 
 const router = require("express").Router();
 
@@ -19,6 +20,7 @@ const initRoutes = (app) => {
   app.use("/api/payment", paymentRouter);
   app.use("/api/brand", brandRouter);
   app.use("/api/coupon", couponRouter);
+  app.use("/api/cart", cartRouter);
 
   // test---------
   app.use("/api/test", testRouter);

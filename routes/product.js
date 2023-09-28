@@ -7,9 +7,25 @@ router.post("/", [verifyAccessToken, isAdmin], ctrls.createProduct);
 
 //get all product
 router.get("/", ctrls.getProducts);
+//get ratings
+router.get("/ratings/:pid", ctrls.getRatings);
 
 //test
 router.get("/test", ctrls.testFunc);
+
+// get stock status
+router.get("/stock-status", ctrls.getStockStatus);
+//get unique color
+router.get("/color-size", ctrls.getColorsSizes);
+
+//test update all variant
+router.get(
+  "/update-all-variant",
+  [verifyAccessToken, isAdmin],
+  ctrls.updateAllVariant
+);
+//test update all variant
+
 //ratings
 router.put("/ratings", verifyAccessToken, ctrls.ratings);
 

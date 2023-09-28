@@ -20,8 +20,14 @@ router.post("/forgotpassword", ctrls.forgotPassword);
 //reset password
 router.put("/reset-password", ctrls.resetPassword);
 
-// CRUD User
+//add product to cart
+router.post("/addcart", verifyAccessToken, ctrls.addCart);
+//get product from cart
+router.get("/getcart", verifyAccessToken, ctrls.getCart);
+//remove all products from cart
+router.post("/removecart", verifyAccessToken, ctrls.removeCart);
 
+// CRUD User
 //get user
 //get current user
 router.get("/current", verifyAccessToken, ctrls.getCurrent);

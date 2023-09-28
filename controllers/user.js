@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const Product = require("../models/product");
 const asyncHandler = require("express-async-handler");
 const sendMail = require("../utilities/sendMail");
 const crypto = require("crypto");
@@ -259,6 +260,74 @@ const resetPassword = asyncHandler(async (req, res) => {
   });
 });
 
+//add product to cart here
+// const addCart = asyncHandler(async (req, res) => {
+//   const { idProduct } = req.body;
+//   const { _id } = req.user;
+
+//   if (!idProduct) throw new Error("Missing Inputs");
+
+//   const product = await Product.findById(idProduct.trim());
+
+//   if (!product) throw new Error("No have a product");
+
+//   const response = await User.findByIdAndUpdate(_id, {
+//     $push: { cart: product },
+//   });
+//   return res.status(200).json({
+//     success: response ? true : false,
+//     mes: response ? "Add a product to cart" : "Something went wrong",
+//   });
+// });
+
+const addCart = asyncHandler(async (req, res) => {
+  // console.log(req.body);
+  const { listProduct } = req.body;
+  const { _id } = req.user;
+
+  if (!listProduct) throw new Error("Missing Inputs");
+
+  const response = await User.findByIdAndUpdate(_id, {
+    // $push: { cart: product },
+    cart: listProduct,
+  });
+  return res.status(200).json({
+    success: response ? true : false,
+    mes: response ? "Add a product to cart" : "Something went wrong",
+  });
+});
+
+const getCart = asyncHandler(async (req, res) => {
+  // console.log(req.body);
+  // const { listProduct } = req.body;
+  const { _id } = req.user;
+
+  // if (!listProduct) throw new Error("Missing Inputs");
+
+  const response = await User.findById(_id);
+  return res.status(200).json({
+    success: response ? true : false,
+    data: response ? response.cart : [],
+    mes: response ? "get cart success" : "Something went wrong",
+  });
+});
+
+const removeCart = asyncHandler(async (req, res) => {
+  // console.log(req.body);
+  // const { listProduct } = req.body;
+  const { _id } = req.user;
+
+  const response = await User.findByIdAndUpdate(_id, {
+    cart: [],
+  });
+  return res.status(200).json({
+    success: response ? true : false,
+    mes: response ? "Remove cart success" : "Something went wrong",
+  });
+});
+
+//add product to cart ends here----------
+
 module.exports = {
   register,
   login,
@@ -267,6 +336,9 @@ module.exports = {
   logout,
   forgotPassword,
   resetPassword,
+  addCart,
+  getCart,
+  removeCart,
 
   getUsers,
   deleteUser,
