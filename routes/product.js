@@ -2,14 +2,6 @@ const ctrls = require("../controllers/product");
 const router = require("express").Router();
 const { verifyAccessToken, isAdmin } = require("../middleware/verifyToken");
 
-//create new product
-router.post("/", [verifyAccessToken, isAdmin], ctrls.createProduct);
-
-//get all product
-router.get("/", ctrls.getProducts);
-//get ratings
-router.get("/ratings/:pid", ctrls.getRatings);
-
 //test
 router.get("/test", ctrls.testFunc);
 
@@ -17,6 +9,14 @@ router.get("/test", ctrls.testFunc);
 router.get("/stock-status", ctrls.getStockStatus);
 //get unique color
 router.get("/color-size", ctrls.getColorsSizes);
+
+//create new product
+router.post("/", [verifyAccessToken, isAdmin], ctrls.createProduct);
+
+//get all product
+router.get("/", ctrls.getProducts);
+//get ratings
+router.get("/ratings/:pid", ctrls.getRatings);
 
 //test update all variant
 router.get(
