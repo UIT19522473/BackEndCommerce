@@ -387,7 +387,7 @@ const getStockStatus = asyncHandler(async (req, res) => {
       productsOutOfStock,
     });
   } catch (error) {
-    console.error("Lỗi khi lấy thông tin số lượng sản phẩm:", error);
+    // console.error("Lỗi khi lấy thông tin số lượng sản phẩm:");
     return res
       .status(500)
       .json({ message: "Lỗi khi lấy thông tin số lượng sản phẩm" });
